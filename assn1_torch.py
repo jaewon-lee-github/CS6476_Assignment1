@@ -85,9 +85,11 @@ class MyLinear(nn.Module):
         # Models are sensitive to weight initialization. Initialize the weights
         # from a normal distribution with zero mean and 0.01 standard deviation.
 
-        self.w1 = None
-        self.w2 = None
-        self.b = None
+        mean = 0.0
+        std_dev = 0.01
+        self.w1 = nn.Parameter(torch.nn.init.normal_(torch.randn(input_dim, output_dim), mean=mean, std=std_dev))
+        self.w2 = nn.Parameter(torch.nn.init.normal_(torch.randn(input_dim, output_dim), mean=mean, std=std_dev))
+        self.b = nn.Parameter(torch.nn.init.normal_(torch.randn(input_dim, output_dim), mean=mean, std=std_dev))
 
         ############## END CODE HERE
 
@@ -101,10 +103,10 @@ class MyLinear(nn.Module):
         Outputs:
             outputs: tensor having the shape (batch_size, output_dim)
         """
-
-
         ############## START CODE HERE
-        outputs = None
+        #    output = XW_1 + X^2W_2 + b \\
+        outputs = torch.matmult(inputs, self.w1.T)+torch.matmult(inputs**2, self.w2.T)+self.b
+        
         ############## END CODE HERE
 
         return outputs
@@ -154,12 +156,12 @@ def mse_loss(y_true, y_pred):
 
     """
     ############## START CODE HERE
-    loss = None
+    #     loss = \frac{1}{n}\Sigma_{i=1}^{n} (y_i - ỹ_i)^2 \\
+    loss = torch.mean((y_true - y_pred)**2)
     return loss
     ############## END CODE HERE
 
 # ### Gradient descent
-
 
 def sgd_step(model, learning_rate):
     """
@@ -179,6 +181,11 @@ def sgd_step(model, learning_rate):
         None
     """
     ############## START CODE HERE
+#     θ_{t+1} := θ_{t} - α⋅\triangledown_{θ}\mathcal{L}(y, ỹ)
+    for param in model.parameters():
+        param.data -= learning_rate*param.grad
+        param.grad.zero_()
+        
     ############## END CODE HERE
 
 # ### Download train and test data
@@ -241,6 +248,12 @@ def train(x_train, y_train, model, epochs, learning_rate):
         None
     """
     ############## START CODE HERE
+    for epoch in range(epochs):
+        y_pred = model(x_train)
+        loss = mse_loss(y_train, y_pred)
+        loss.backward()
+        sgd_step(model, learning_rate)
+
     ############## END CODE HERE
 
 # The training loss should be less then 0.0025. 
@@ -261,7 +274,8 @@ def predict(model, x_test):
     """
 
     ############## START CODE HERE
-    predictions = None
+    predictions = model(x_test)
+
     ############## END CODE HERE
     return predictions
 
