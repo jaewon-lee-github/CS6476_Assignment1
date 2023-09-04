@@ -90,8 +90,6 @@ class MyLinear(nn.Module):
         self.w1 = nn.Parameter(torch.nn.init.normal_(torch.randn(input_dim, output_dim), mean=mean, std=std_dev))
         self.w2 = nn.Parameter(torch.nn.init.normal_(torch.randn(input_dim, output_dim), mean=mean, std=std_dev))
         self.b = nn.Parameter(torch.ones(input_dim, output_dim))
-        print(input_dim, output_dim)
-        print(self.w1.shape, self.w2.shape, self.b.shape)
 
         ############## END CODE HERE
 
@@ -107,7 +105,7 @@ class MyLinear(nn.Module):
         """
         ############## START CODE HERE
         #    output = XW_1 + X^2W_2 + b \\
-        outputs = torch.matmul(inputs, self.w1.T)+torch.matmul(inputs**2, self.w2.T)+self.b
+        outputs = torch.matmul(inputs, self.w1)+torch.matmul(inputs**2, self.w2)+self.b
         
         ############## END CODE HERE
 
