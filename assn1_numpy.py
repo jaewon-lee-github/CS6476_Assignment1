@@ -365,8 +365,7 @@ def apply_gaussian_blur(image_array, sigma):
     ## Enter your code only Here... Dont change the rest of the functions/code
     # Create a Gaussian kernels
     kernel_size= 6*sigma+1
-    
-    kernel = np.zeros(kernel_size,kernel_size)
+    kernel = np.zeros([kernel_size,kernel_size])
     #   **$G(x, y) = \frac{1}{{2 \pi \sigma^2}} \cdot e^{-\frac{x^2 + y^2}{{2 \sigma^2}}}$**
     for i in range(kernel_size):
         for j in range(kernel_size):
@@ -374,7 +373,14 @@ def apply_gaussian_blur(image_array, sigma):
     # Normalize the kernel
     kernel = kernel / np.sum(kernel)
     # Apply convolution between the image and the Gaussian kernel
-    blurred_image_array = np.convolve(image_array, kernel, mode='same')
+    pad= kernel_size//2
+    padded_image_array = np.pad(image_array, ((pad,pad), (pad, pad)), mode='constant', constant_values=0)
+    x,y=image_array.shape
+    blurred_image_array= np.zeros_like(image_array)
+    for i in range(x):
+        for j in range(y):
+            image_patch = padded_image_array[i:i+kernel_size, j:j+kernel_size]
+            blurred_image_array[i, j] = np.sum(image_patch * kernel)
 
     return blurred_image_array
 
@@ -461,11 +467,21 @@ from io import BytesIO
 def sobel_edge_detection(image, threshold):
 
     ## PERFORM TASKS HERE
+    sobel_X=np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
+    sobel_Y=np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
     # 1. Convert the color image to grayscale for simplicity.
     grayscale_image = convert_to_grayscale(image)
     # 2. Calculate horizontal and vertical gradients using Sobel operators.
-    horizontal_gradient = np.convolve(grayscale_image, [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], mode='same')
-    vertical_gradient = np.convolve(grayscale_image, [[-1, -2, -1], [0, 0, 0], [1, 2, 1]], mode='same')
+    x,y=grayscale_image.shape
+    pad = 2
+    padded_image_array = np.pad(grayscale_image, ((pad,pad), (pad, pad)), mode='constant', constant_values=0)
+    horizontal_gradient= np.zeros_like(grayscale_image)
+    vertical_gradient= np.zeros_like(grayscale_image)
+    for i in range(x):
+        for j in range(y):
+            image_patch = padded_image_array[i:i+3, j:j+3]
+            horizontal_gradient[i, j] = np.sum(image_patch * sobel_X)
+            vertical_gradient[i, j] = np.sum(image_patch * sobel_Y)
     # 3. Combine gradients to get gradient magnitude.
     gradient_magnitude = np.sqrt(horizontal_gradient ** 2 + vertical_gradient ** 2)
     # 4. Apply threshold: if gradient magnitude > threshold, pixel is an edge. (Threshold = 150, dont change)
@@ -474,9 +490,10 @@ def sobel_edge_detection(image, threshold):
     return edges.astype(np.uint8)
 
 
-image_url = "https://upload.wikimedia.org/wikipedia/commons/4/40/TechTower.jpg"
-response = requests.get(image_url)
-input_image = np.array(Image.open(BytesIO(response.content)))
+#image_url = "https://upload.wikimedia.org/wikipedia/commons/4/40/TechTower.jpg"
+#response = requests.get(image_url)
+#input_image = np.array(Image.open(BytesIO(response.content)))
+input_image = np.array(Image.open("TechTower.jpg"))
 
 threshold_value = 150 ## Dont change this value
 edge_map = sobel_edge_detection(input_image, threshold_value)
