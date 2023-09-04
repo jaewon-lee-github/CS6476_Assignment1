@@ -105,7 +105,7 @@ class MyLinear(nn.Module):
         """
         ############## START CODE HERE
         #    output = XW_1 + X^2W_2 + b \\
-        outputs = torch.matmult(inputs, self.w1.T)+torch.matmult(inputs**2, self.w2.T)+self.b
+        outputs = torch.matmul(inputs, self.w1.T)+torch.matmul(inputs**2, self.w2.T)+self.b
         
         ############## END CODE HERE
 
