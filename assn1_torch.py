@@ -89,7 +89,7 @@ class MyLinear(nn.Module):
         std_dev = 0.01
         self.w1 = nn.Parameter(torch.nn.init.normal_(torch.randn(input_dim, output_dim), mean=mean, std=std_dev))
         self.w2 = nn.Parameter(torch.nn.init.normal_(torch.randn(input_dim, output_dim), mean=mean, std=std_dev))
-        self.b = nn.Parameter(torch.nn.init.normal_(torch.randn(input_dim, output_dim), mean=mean, std=std_dev))
+        self.b = nn.Parameter(torch.ones(input_dim, output_dim))
 
         ############## END CODE HERE
 
