@@ -80,12 +80,22 @@ def nearest_centroid_classifier(data, no_of_labels, iterations):
     Returns:
     numpy.ndarray: A 1D array of shape (n,) containing predicted class labels after iterations.
     """
+    # Initialize centroids as random data points
+    centroids = data[np.random.choice(n, k, replace=False)]
+    for _ in np.arange(iterations):
+        # calculate the Euclidean distance between each data point and each centroid
+        distances = np.sqrt(np.sum((data[:,np.newaxis,:] - centroids) ** 2, axis=2))
+        # find the nearest centroid for each data point
+        predicted_labels = np.argmin(distances, axis=1)
+        # calculate the mean of each cluster and update the centroid
+        centroids = np.array([np.mean(data[predicted_labels == i], axis=0) for i in range(k)])
+    
     return predicted_labels
 
 # Dummy data for testing: (One of the Unit Test Cases)
 n = 100
 d = 2
-k = 2
+k = 3
 iterations = 10
 
 data = np.random.rand(n, d)
@@ -156,6 +166,9 @@ import matplotlib.pyplot as plt
 
 def center_crop(image, center_crop_size):
     ## Enter your Code Only here
+    center=y,x=image.shape[0]//2,image.shape[1]//2
+    cropped_image = image[y-center_crop_size//2:y+center_crop_size//2,
+                          x-center_crop_size//2:x+center_crop_size//2]
 
     return cropped_image
 
@@ -240,13 +253,27 @@ def affine_transform(points, rotation_angle, scale_x, scale_y, translation):
     Returns:
         list: Transformed set of points.
     """
-    # Convert rotation angle to radians
-
     # Define transformation matrices
 
-
-
-    # Apply transformations
+    # 1. Convert Angle to Radians:
+    #     1.1 Convert the given rotation angle from degrees to radians.
+    rotation_angle = np.radians(rotation_angle)
+    # 2. Define Transformation Matrices:
+    #     2.1 Create a rotation matrix using the cosine and sine of the angle.
+    rotation_matrix = np.array([[np.cos(rotation_angle), -np.sin(rotation_angle)],
+                                [np.sin(rotation_angle), np.cos(rotation_angle)]])
+    #     2.2 Create a scaling matrix with the provided scale_x and scale_y factors.
+    scaling_matrix = np.array([[scale_x, 0],[0, scale_y]])
+    #     2.3 Create a translation vector using the translation list.
+    translation_vector = np.array(translation)
+    # 3. Apply Transformations:
+    #     3.1 Use the rotation matrix to transform the points by matrix multiplication.
+    transformed_points = np.dot(points, rotation_matrix)
+    #     3.2 Use the scaling matrix to further transform the points.
+    transformed_points = np.dot(transformed_points, scaling_matrix)
+    #     3.3 Add the translation vector to each point.
+    transformed_points = transformed_points + translation_vector
+    # 4. Return Transformed Points  
     return transformed_points
 
 # Example::
@@ -336,6 +363,19 @@ def convert_to_grayscale(image_array):
 
 def apply_gaussian_blur(image_array, sigma):
     ## Enter your code only Here... Dont change the rest of the functions/code
+    # Create a Gaussian kernels
+    kernel_size= 6*sigma+1
+    
+    kernel = np.zeros(kernel_size,kernel_size)
+    #   **$G(x, y) = \frac{1}{{2 \pi \sigma^2}} \cdot e^{-\frac{x^2 + y^2}{{2 \sigma^2}}}$**
+    for i in range(kernel_size):
+        for j in range(kernel_size):
+            kernel[i,j] = (1.0 / ( 2 * np.pi*sigma**2)) * np.exp(-np.sum((i - kernel_size // 2) ** 2 + (j - kernel_size // 2) ** 2) / (2 * sigma ** 2))
+    # Normalize the kernel
+    kernel = kernel / np.sum(kernel)
+    # Apply convolution between the image and the Gaussian kernel
+    blurred_image_array = np.convolve(image_array, kernel, mode='same')
+
     return blurred_image_array
 
 
@@ -421,7 +461,16 @@ from io import BytesIO
 def sobel_edge_detection(image, threshold):
 
     ## PERFORM TASKS HERE
-
+    # 1. Convert the color image to grayscale for simplicity.
+    grayscale_image = convert_to_grayscale(image)
+    # 2. Calculate horizontal and vertical gradients using Sobel operators.
+    horizontal_gradient = np.convolve(grayscale_image, [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], mode='same')
+    vertical_gradient = np.convolve(grayscale_image, [[-1, -2, -1], [0, 0, 0], [1, 2, 1]], mode='same')
+    # 3. Combine gradients to get gradient magnitude.
+    gradient_magnitude = np.sqrt(horizontal_gradient ** 2 + vertical_gradient ** 2)
+    # 4. Apply threshold: if gradient magnitude > threshold, pixel is an edge. (Threshold = 150, dont change)
+    edges = np.where(gradient_magnitude > threshold, 1, 0)
+    # 5. Return binary edge map.
     return edges.astype(np.uint8)
 
 
